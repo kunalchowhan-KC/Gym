@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Routine — Daily Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark">◆</span>
+      <span class="brand-name">Routine</span>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="today" role="tab" aria-selected="true">Today</button>
+      <button class="tab" data-tab="history" role="tab" aria-selected="false">History</button>
+      <button class="tab" data-tab="settings" role="tab" aria-selected="false">Settings</button>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- TODAY -->
+    <section class="panel active" id="today" role="tabpanel">
+      <div class="date-row">
+        <h1 id="today-date">—</h1>
+        <span class="streak-pill" id="streak-pill">🔥 0 day streak</span>
+      </div>
+
+      <div class="block">
+        <div class="block-head">
+          <h2>Habits</h2>
+          <button class="link-btn" id="add-habit-btn">+ Add habit</button>
+        </div>
+        <ul class="habit-list" id="habit-list">
+          <!-- habit items injected here -->
+        </ul>
+        <p class="empty-note" id="habit-empty" hidden>No habits yet. Add your first one above.</p>
+      </div>
+
+      <div class="block">
+        <div class="block-head">
+          <h2>Workout</h2>
+          <button class="link-btn" id="add-exercise-btn">+ Add exercise</button>
+        </div>
+        <div class="workout-table" id="workout-table">
+          <div class="workout-row workout-row-head">
+            <span>Exercise</span>
+            <span>Sets</span>
+            <span>Reps</span>
+            <span>kg</span>
+            <span></span>
+          </div>
+          <!-- exercise rows injected here -->
+        </div>
+        <p class="empty-note" id="exercise-empty" hidden>No exercises logged yet. Add one above.</p>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="panel" id="history" role="tabpanel">
+      <div class="history-head">
+        <h1>History</h1>
+        <p class="subtle">Each square is a day. Darker means more habits completed.</p>
+      </div>
+
+      <div class="grid-wrap">
+        <div class="streak-grid" id="streak-grid"></div>
+        <div class="grid-legend">
+          <span>Less</span>
+          <span class="legend-swatch l0"></span>
+          <span class="legend-swatch l1"></span>
+          <span class="legend-swatch l2"></span>
+          <span class="legend-swatch l3"></span>
+          <span class="legend-swatch l4"></span>
+          <span>More</span>
+        </div>
+      </div>
+
+      <div class="block">
+        <h2>Workout log</h2>
+        <div class="history-list" id="workout-history">
+          <!-- past workout days injected here -->
+        </div>
+        <p class="empty-note" id="workout-history-empty" hidden>No workouts logged yet.</p>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="panel" id="settings" role="tabpanel">
+      <h1>Settings</h1>
+
+      <div class="block">
+        <h2>Sync your data</h2>
+        <p class="subtle">
+          Your data is saved in this browser only. To use this tracker on another device,
+          or to keep a backup, export a file here and import it there.
+        </p>
+        <div class="settings-actions">
+          <button class="btn btn-primary" id="export-btn">Export data file</button>
+          <button class="btn" id="import-btn">Import data file</button>
+          <input type="file" id="import-file" accept="application/json" hidden>
+        </div>
+        <p class="hint" id="settings-status"></p>
+      </div>
+
+      <div class="block">
+        <h2>Reset</h2>
+        <p class="subtle">Remove all habits, exercises, and history from this browser.</p>
+        <button class="btn btn-danger" id="reset-btn">Clear all data</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Add Habit Dialog -->
+<dialog id="habit-dialog">
+  <form id="habit-form">
+    <h3>New habit</h3>
+    <label for="habit-name">Name</label>
+    <input type="text" id="habit-name" placeholder="e.g. Drink water, Read 10 pages" required maxlength="60">
+    <div class="dialog-actions">
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button type="submit" class="btn btn-primary">Add habit</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Add Exercise Dialog -->
+<dialog id="exercise-dialog">
+  <form id="exercise-form">
+    <h3>New exercise</h3>
+    <label for="exercise-name">Exercise</label>
+    <input type="text" id="exercise-name" placeholder="e.g. Bench press" required maxlength="60">
+    <div class="form-row">
+      <div>
+        <label for="exercise-sets">Sets</label>
+        <input type="number" id="exercise-sets" min="0" max="99" value="3">
+      </div>
+      <div>
+        <label for="exercise-reps">Reps</label>
+        <input type="number" id="exercise-reps" min="0" max="999" value="10">
+      </div>
+      <div>
+        <label for="exercise-weight">Weight (kg)</label>
+        <input type="number" id="exercise-weight" min="0" max="999" step="0.5" value="0">
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button type="button" class="btn" data-close>Cancel</button>
+      <button type="submit" class="btn btn-primary">Add exercise</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="script.js"></script>
+</body>
+</html>
