@@ -20,6 +20,7 @@
     </div>
     <nav class="tabs" role="tablist">
       <button class="tab active" data-tab="today" role="tab" aria-selected="true">Today</button>
+      <button class="tab" data-tab="routine" role="tab" aria-selected="false">Routine</button>
       <button class="tab" data-tab="history" role="tab" aria-selected="false">History</button>
       <button class="tab" data-tab="settings" role="tab" aria-selected="false">Settings</button>
     </nav>
@@ -61,6 +62,18 @@
           <!-- exercise rows injected here -->
         </div>
         <p class="empty-note" id="exercise-empty" hidden>No exercises logged yet. Add one above.</p>
+      </div>
+    </section>
+
+    <!-- ROUTINE -->
+    <section class="panel" id="routine" role="tabpanel">
+      <div class="history-head">
+        <h1>Routine</h1>
+        <p class="subtle">Your weekly plan. Log a day to copy its exercises into Today.</p>
+      </div>
+
+      <div class="routine-list" id="routine-list">
+        <!-- routine day cards injected here -->
       </div>
     </section>
 

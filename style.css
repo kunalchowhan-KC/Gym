@@ -93,7 +93,7 @@ a, .link-btn {
   background: none;
   border: none;
   border-radius: 7px;
-  padding: 10px 14px;
+  padding: 10px 8px;
   font-size: 0.92rem;
   font-weight: 500;
   color: var(--ink-soft);
@@ -458,12 +458,92 @@ dialog h3 {
   color: var(--ink-soft);
 }
 
+/* ---------- Routine ---------- */
+.routine-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.routine-day {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+.routine-day.is-rest {
+  background: transparent;
+  border-style: dashed;
+}
+
+.routine-day-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.routine-day-name {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.routine-day-focus {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.routine-day.is-rest .routine-day-focus {
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.routine-exercise-list {
+  list-style: none;
+  margin: 12px 0 14px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.routine-exercise-list li {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.92rem;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+.routine-exercise-list li:last-child { border-bottom: none; }
+.routine-exercise-list .stat {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.routine-day .btn {
+  font-size: 0.85rem;
+  padding: 8px 16px;
+}
+
+.log-status {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--green);
+  margin-left: 10px;
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 520px) {
   .app { padding: 0 14px 60px; }
   .app-header { padding: 18px 0 14px; }
   .date-row h1 { font-size: 1.4rem; }
   .form-row { grid-template-columns: 1fr; }
+  .tab { font-size: 0.8rem; padding: 10px 4px; }
   .workout-row {
     grid-template-columns: 1.6fr 0.7fr 0.7fr 0.9fr 28px;
     gap: 6px;

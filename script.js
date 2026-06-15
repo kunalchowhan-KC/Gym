@@ -60,6 +60,65 @@ let state = loadData();
 const TODAY = todayKey();
 
 // ============================================================
+// Standard routine — 5-day bro split (Mon–Fri), weekend rest
+// ============================================================
+
+const STANDARD_ROUTINE = [
+  {
+    day: "Monday",
+    focus: "Chest",
+    exercises: [
+      { name: "Bench Press", sets: 4, reps: 8, weight: 0 },
+      { name: "Incline Dumbbell Press", sets: 3, reps: 10, weight: 0 },
+      { name: "Cable Fly", sets: 3, reps: 12, weight: 0 },
+      { name: "Push-ups", sets: 3, reps: 15, weight: 0 },
+    ],
+  },
+  {
+    day: "Tuesday",
+    focus: "Back",
+    exercises: [
+      { name: "Deadlift", sets: 4, reps: 6, weight: 0 },
+      { name: "Lat Pulldown", sets: 3, reps: 10, weight: 0 },
+      { name: "Barbell Row", sets: 3, reps: 10, weight: 0 },
+      { name: "Face Pull", sets: 3, reps: 15, weight: 0 },
+    ],
+  },
+  {
+    day: "Wednesday",
+    focus: "Legs",
+    exercises: [
+      { name: "Squat", sets: 4, reps: 8, weight: 0 },
+      { name: "Leg Press", sets: 3, reps: 12, weight: 0 },
+      { name: "Lunges", sets: 3, reps: 12, weight: 0 },
+      { name: "Calf Raise", sets: 4, reps: 15, weight: 0 },
+    ],
+  },
+  {
+    day: "Thursday",
+    focus: "Shoulders",
+    exercises: [
+      { name: "Overhead Press", sets: 4, reps: 8, weight: 0 },
+      { name: "Lateral Raise", sets: 3, reps: 12, weight: 0 },
+      { name: "Front Raise", sets: 3, reps: 12, weight: 0 },
+      { name: "Shrugs", sets: 3, reps: 15, weight: 0 },
+    ],
+  },
+  {
+    day: "Friday",
+    focus: "Arms",
+    exercises: [
+      { name: "Barbell Curl", sets: 3, reps: 10, weight: 0 },
+      { name: "Tricep Pushdown", sets: 3, reps: 12, weight: 0 },
+      { name: "Hammer Curl", sets: 3, reps: 10, weight: 0 },
+      { name: "Skull Crushers", sets: 3, reps: 10, weight: 0 },
+    ],
+  },
+  { day: "Saturday", focus: "Rest", exercises: [] },
+  { day: "Sunday", focus: "Rest", exercises: [] },
+];
+
+// ============================================================
 // Tabs
 // ============================================================
 
@@ -76,6 +135,7 @@ tabs.forEach(tab => {
     document.getElementById(tab.dataset.tab).classList.add("active");
 
     if (tab.dataset.tab === "history") renderHistory();
+    if (tab.dataset.tab === "routine") renderRoutine();
   });
 });
 
@@ -285,6 +345,87 @@ exerciseForm.addEventListener("submit", (e) => {
 document.querySelectorAll("dialog [data-close]").forEach(btn => {
   btn.addEventListener("click", () => btn.closest("dialog").close());
 });
+
+// ============================================================
+// Routine view
+// ============================================================
+
+const routineListEl = document.getElementById("routine-list");
+const TODAY_DAY_NAME = new Date().toLocaleDateString(undefined, { weekday: "long" });
+
+function renderRoutine() {
+  routineListEl.innerHTML = "";
+
+  STANDARD_ROUTINE.forEach(dayPlan => {
+    const isRest = dayPlan.exercises.length === 0;
+    const isToday = dayPlan.day === TODAY_DAY_NAME;
+
+    const card = document.createElement("div");
+    card.className = "routine-day" + (isRest ? " is-rest" : "");
+
+    const head = document.createElement("div");
+    head.className = "routine-day-head";
+
+    const dayLabel = document.createElement("span");
+    dayLabel.className = "routine-day-name";
+    dayLabel.textContent = dayPlan.day + (isToday ? " · Today" : "");
+
+    const focusLabel = document.createElement("span");
+    focusLabel.className = "routine-day-focus";
+    focusLabel.textContent = dayPlan.focus;
+
+    head.append(dayLabel, focusLabel);
+    card.appendChild(head);
+
+    if (isRest) {
+      const note = document.createElement("p");
+      note.className = "subtle";
+      note.style.margin = "8px 0 0";
+      note.textContent = "Rest day. Recover, stretch, or take a walk.";
+      card.appendChild(note);
+    } else {
+      const list = document.createElement("ul");
+      list.className = "routine-exercise-list";
+      dayPlan.exercises.forEach(ex => {
+        const li = document.createElement("li");
+        const name = document.createElement("span");
+        name.textContent = ex.name;
+        const stat = document.createElement("span");
+        stat.className = "stat";
+        stat.textContent = `${ex.sets} × ${ex.reps}`;
+        li.append(name, stat);
+        list.appendChild(li);
+      });
+      card.appendChild(list);
+
+      const logBtn = document.createElement("button");
+      logBtn.className = "btn btn-primary";
+      logBtn.textContent = "Log this workout";
+
+      const status = document.createElement("span");
+      status.className = "log-status";
+
+      logBtn.addEventListener("click", () => {
+        const day = ensureDay(TODAY);
+        dayPlan.exercises.forEach(ex => {
+          day.exercises.push({ id: uid(), name: ex.name, sets: ex.sets, reps: ex.reps, weight: ex.weight });
+        });
+        saveData();
+        renderExercises();
+        updateStreakPill();
+        status.textContent = "Added to Today ✓";
+        setTimeout(() => { status.textContent = ""; }, 2500);
+      });
+
+      const actions = document.createElement("div");
+      actions.style.marginTop = "12px";
+      actions.append(logBtn, status);
+      card.appendChild(actions);
+    }
+
+    routineListEl.appendChild(card);
+  });
+}
 
 // ============================================================
 // History view
