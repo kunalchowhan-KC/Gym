@@ -2,18 +2,18 @@
 // Routine Tracker — data model & persistence
 // ============================================================
 //
-// Data shape stored in localStorage under key "routine-tracker-data":
-// {
-//   habits: [ { id, name } ],
-//   days: {
-//     "YYYY-MM-DD": {
-//       habits: { [habitId]: true },
-//       exercises: [ { id, name, sets, reps, weight } ]
-//     }
-//   }
-// }
+// Primary storage: routine-data.json file on the user's phone.
+// Secondary: localStorage as a session cache so mid-session changes
+// aren't lost if the page refreshes before Save is tapped.
+//
+// Flow:
+//   App starts → show "Load file or start fresh" banner
+//   User loads file → parse JSON → populate state → cache in localStorage
+//   User taps Save → download routine-data.json → overwrite old file
+//   localStorage is always written on every change as a safety net.
 
 const STORAGE_KEY = "routine-tracker-data";
+const FILE_NAME = "routine-data.json";
 
 function todayKey(date = new Date()) {
   const y = date.getFullYear();
@@ -22,27 +22,57 @@ function todayKey(date = new Date()) {
   return `${y}-${m}-${d}`;
 }
 
-function loadData() {
+function emptyState() {
+  return { habits: [], days: {} };
+}
+
+function loadFromLocalStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { habits: [], days: {} };
+    if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (!parsed.habits) parsed.habits = [];
-    if (!parsed.days) parsed.days = {};
+    if (!parsed.habits || !parsed.days) return null;
     return parsed;
   } catch (e) {
-    console.error("Failed to load data:", e);
-    return { habits: [], days: {} };
+    return null;
   }
 }
 
-function saveData() {
+function saveToLocalStorage() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (e) {
-    console.error("Failed to save data:", e);
-    showSettingsStatus("Couldn't save — your browser storage may be full or disabled.", true);
+    console.warn("localStorage write failed:", e);
   }
+}
+
+// saveData = always write to localStorage (session cache)
+function saveData() {
+  saveToLocalStorage();
+}
+
+// saveToFile = download routine-data.json to device
+function saveToFile() {
+  const json = JSON.stringify(state, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = FILE_NAME;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function applyLoadedData(parsed) {
+  if (!parsed.habits) parsed.habits = [];
+  if (!parsed.days) parsed.days = {};
+  state = parsed;
+  saveToLocalStorage();
+  renderHabits();
+  renderExercises();
+  updateStreakPill();
 }
 
 function ensureDay(dateKey) {
@@ -56,7 +86,7 @@ function uid() {
   return Math.random().toString(36).slice(2, 10);
 }
 
-let state = loadData();
+let state = emptyState();
 const TODAY = todayKey();
 
 // ============================================================
@@ -523,7 +553,7 @@ function renderWorkoutHistory() {
 }
 
 // ============================================================
-// Settings: export / import / reset
+// Settings: save to file / load from file / reset
 // ============================================================
 
 const settingsStatusEl = document.getElementById("settings-status");
@@ -533,60 +563,112 @@ function showSettingsStatus(msg, isError = false) {
   settingsStatusEl.classList.toggle("error", isError);
 }
 
+// Save button in settings (same as FAB)
 document.getElementById("export-btn").addEventListener("click", () => {
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `routine-backup-${TODAY}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  showSettingsStatus("Exported. Save this file somewhere safe, or open it on another device.");
+  saveToFile();
+  showSettingsStatus("File saved! Replace the old routine-data.json on your phone with this one.");
 });
 
+// Load button in settings
 const importInput = document.getElementById("import-file");
 document.getElementById("import-btn").addEventListener("click", () => importInput.click());
 
 importInput.addEventListener("change", () => {
   const file = importInput.files[0];
   if (!file) return;
-
   const reader = new FileReader();
   reader.onload = () => {
     try {
       const parsed = JSON.parse(reader.result);
-      if (!parsed.habits || !parsed.days) throw new Error("Invalid file format");
-      state = parsed;
-      saveData();
-      renderHabits();
-      renderExercises();
-      updateStreakPill();
-      showSettingsStatus("Data imported successfully.");
-    } catch (e) {
+      if (!parsed.habits || !parsed.days) throw new Error("bad format");
+      applyLoadedData(parsed);
+      showSettingsStatus("Data loaded successfully.");
+    } catch {
       showSettingsStatus("Couldn't read that file — make sure it's a Routine export.", true);
     }
   };
-  reader.onerror = () => showSettingsStatus("Couldn't read that file.", true);
+  reader.onerror = () => showSettingsStatus("Couldn't read the file.", true);
   reader.readAsText(file);
   importInput.value = "";
 });
 
 document.getElementById("reset-btn").addEventListener("click", () => {
-  if (!confirm("This will permanently delete all habits, exercises, and history from this browser. Continue?")) return;
-  state = { habits: [], days: {} };
+  if (!confirm("Delete all habits, exercises, and history from this session? (Your saved file won't be affected.)")) return;
+  state = emptyState();
   saveData();
   renderHabits();
   renderExercises();
   updateStreakPill();
-  showSettingsStatus("All data cleared.");
+  showSettingsStatus("Session cleared. Load your file to restore.");
 });
 
 // ============================================================
-// Init
+// Floating save button (Today tab)
+// ============================================================
+
+const fabSaveBtn = document.getElementById("fab-save");
+const fabHintEl = document.getElementById("fab-hint");
+
+fabSaveBtn.addEventListener("click", () => {
+  saveToFile();
+  fabHintEl.textContent = "Saved! Replace routine-data.json on your phone with this file.";
+  fabHintEl.classList.remove("error");
+  setTimeout(() => { fabHintEl.textContent = ""; }, 4000);
+});
+
+// ============================================================
+// Startup: load banner
+// ============================================================
+
+const loadBanner = document.getElementById("load-banner");
+const loadFileBtn = document.getElementById("load-file-btn");
+const loadSkipBtn = document.getElementById("load-skip-btn");
+const loadFileInput = document.getElementById("load-file-input");
+
+function dismissBanner() {
+  loadBanner.classList.add("hidden");
+}
+
+loadFileBtn.addEventListener("click", () => loadFileInput.click());
+
+loadFileInput.addEventListener("change", () => {
+  const file = loadFileInput.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      if (!parsed.habits || !parsed.days) throw new Error("bad format");
+      applyLoadedData(parsed);
+      dismissBanner();
+      fabHintEl.textContent = "Data loaded from file ✓";
+      setTimeout(() => { fabHintEl.textContent = ""; }, 3000);
+    } catch {
+      alert("Couldn't read that file. Make sure it's your routine-data.json file.");
+    }
+  };
+  reader.onerror = () => alert("Couldn't read the file.");
+  reader.readAsText(file);
+  loadFileInput.value = "";
+});
+
+loadSkipBtn.addEventListener("click", () => {
+  // Check if there's a cached session in localStorage to restore silently
+  const cached = loadFromLocalStorage();
+  if (cached) {
+    applyLoadedData(cached);
+    fabHintEl.textContent = "Session restored from last time.";
+    setTimeout(() => { fabHintEl.textContent = ""; }, 3000);
+  }
+  dismissBanner();
+});
+
+// ============================================================
+// Init — show banner every time (file is the source of truth)
 // ============================================================
 
 renderHabits();
 renderExercises();
 updateStreakPill();
+// Show the load banner on every startup so user is always reminded to load their file
+loadBanner.classList.remove("hidden");

@@ -458,6 +458,79 @@ dialog h3 {
   color: var(--ink-soft);
 }
 
+/* ---------- Load banner ---------- */
+.load-banner {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(31, 36, 33, 0.55);
+  display: flex;
+  align-items: flex-end;
+  padding: 20px;
+}
+.load-banner.hidden { display: none; }
+
+.load-banner-inner {
+  background: var(--paper);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.15);
+}
+.load-banner-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 6px;
+}
+.load-banner-sub {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  margin: 0 0 18px;
+  line-height: 1.5;
+}
+.load-banner-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ---------- Floating save button ---------- */
+.fab-save {
+  display: block;
+  width: 100%;
+  margin-top: 20px;
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 16px;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(45, 106, 79, 0.35);
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+.fab-save:active {
+  transform: scale(0.98);
+  filter: brightness(0.95);
+}
+.fab-save:hover { filter: brightness(1.08); }
+
+.fab-hint {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--green);
+  text-align: center;
+  margin: 8px 0 0;
+  min-height: 1.2em;
+}
+.fab-hint.error { color: var(--red); }
+
 /* ---------- Routine ---------- */
 .routine-list {
   display: flex;
